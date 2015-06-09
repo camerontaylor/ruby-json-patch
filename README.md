@@ -1,6 +1,4 @@
-# hana
-
-* http://github.com/tenderlove/hana
+Original base: http://github.com/tenderlove/hana
 
 ## DESCRIPTION:
 

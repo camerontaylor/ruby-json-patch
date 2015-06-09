@@ -1,42 +1,4 @@
-module Hana
-  VERSION = '1.3.1'
-
-  class Pointer
-    include Enumerable
-
-    def initialize path
-      @path = Pointer.parse path
-    end
-
-    def each(&block); @path.each(&block); end
-
-    def eval object
-      Pointer.eval @path, object
-    end
-
-    ESC = {'^/' => '/', '^^' => '^', '~0' => '~', '~1' => '/'} # :nodoc:
-
-    def self.eval list, object
-      list.inject(object) { |o, part|
-        return nil unless o
-
-        if Array === o
-          raise Patch::IndexError unless part =~ /\A\d+\Z/
-          part = part.to_i
-        end
-        o[part]
-      }
-    end
-
-    def self.parse path
-      return [''] if path == '/'
-
-      path.sub(/^\//, '').split(/(?<!\^)\//).each { |part|
-        part.gsub!(/\^[\/^]|~[01]/) { |m| ESC[m] }
-      }
-    end
-  end
-
+module JsonPatch
   class Patch
     class Exception < StandardError
     end
@@ -67,13 +29,13 @@ module Hana
       @is = is
     end
 
-    VALID = Hash[%w{ add move test replace remove copy }.map { |x| [x,x]}] # :nodoc:
+    VALID = Hash[%w{ add move test replace remove copy }.map { |x| [x, x] }] # :nodoc:
 
     def apply doc
       @is.inject(doc) { |d, ins|
         send VALID.fetch(ins[OP].strip) { |k|
-          raise Exception, "bad method `#{k}`"
-        }, ins, d
+               raise Exception, "bad method `#{k}`"
+             }, ins, d
       }
     end
 
