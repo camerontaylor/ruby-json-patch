@@ -8,7 +8,7 @@ Hoe.plugin :minitest
 Hoe.plugin :gemspec # `gem install hoe-gemspec`
 Hoe.plugin :git     # `gem install hoe-git`
 
-Hoe.spec 'hana' do
+Hoe.spec 'ruby-json-patch' do
   developer('Cameron Taylor', 'camerontaylor@gmail.com')
   self.readme_file   = 'README.md'
   self.history_file  = 'CHANGELOG.rdoc'

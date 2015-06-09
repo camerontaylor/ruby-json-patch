@@ -1,4 +1,4 @@
-module JsonPatch
+module RubyJsonPatch
   class Pointer
     include Enumerable
 
