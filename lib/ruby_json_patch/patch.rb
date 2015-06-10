@@ -25,8 +25,9 @@ module RubyJsonPatch
     class MissingTargetException < Exception
     end
 
-    def initialize is
+    def initialize is, options = {}
       @is = is
+      @pather = options[:pather] || Pather.new
     end
 
     VALID = Hash[%w{ add move test replace remove copy }.map { |x| [x, x] }] # :nodoc:
@@ -47,9 +48,9 @@ module RubyJsonPatch
     OP    = 'op' # :nodoc:
 
     def add ins, doc
-      list = Pointer.parse ins[PATH]
+      list = @pather.parse ins[PATH]
       key  = list.pop
-      dest = Pointer.eval list, doc
+      dest = @pather.eval list, doc
       obj  = ins.fetch VALUE
 
       raise(MissingTargetException, ins[PATH]) unless dest
@@ -63,12 +64,12 @@ module RubyJsonPatch
     end
 
     def move ins, doc
-      from     = Pointer.parse ins.fetch FROM
-      to       = Pointer.parse ins[PATH]
+      from     = @pather.parse ins.fetch FROM
+      to       = @pather.parse ins[PATH]
       from_key = from.pop
       key      = to.pop
-      src      = Pointer.eval from, doc
-      dest     = Pointer.eval to, doc
+      src      = @pather.eval from, doc
+      dest     = @pather.eval to, doc
 
       obj = rm_op src, from_key
       add_op dest, key, obj
@@ -76,12 +77,12 @@ module RubyJsonPatch
     end
 
     def copy ins, doc
-      from     = Pointer.parse ins.fetch FROM
-      to       = Pointer.parse ins[PATH]
+      from     = @pather.parse ins.fetch FROM
+      to       = @pather.parse ins[PATH]
       from_key = from.pop
       key      = to.pop
-      src      = Pointer.eval from, doc
-      dest     = Pointer.eval to, doc
+      src      = @pather.eval from, doc
+      dest     = @pather.eval to, doc
 
       if Array === src
         raise Patch::IndexError unless from_key =~ /\A\d+\Z/
@@ -95,7 +96,7 @@ module RubyJsonPatch
     end
 
     def test ins, doc
-      expected = Pointer.new(ins[PATH]).eval doc
+      expected = @pather.new(ins[PATH]).eval doc
 
       unless expected == ins.fetch(VALUE)
         raise FailedTestException.new(ins[VALUE], ins[PATH])
@@ -104,9 +105,9 @@ module RubyJsonPatch
     end
 
     def replace ins, doc
-      list = Pointer.parse ins[PATH]
+      list = @pather.parse ins[PATH]
       key  = list.pop
-      obj  = Pointer.eval list, doc
+      obj  = @pather.eval list, doc
 
       return ins.fetch VALUE unless key
 
@@ -120,9 +121,9 @@ module RubyJsonPatch
     end
 
     def remove ins, doc
-      list = Pointer.parse ins[PATH]
+      list = @pather.parse ins[PATH]
       key  = list.pop
-      obj  = Pointer.eval list, doc
+      obj  = @pather.eval list, doc
       rm_op obj, key
       doc
     end
@@ -137,8 +138,13 @@ module RubyJsonPatch
     end
 
     def add_op dest, key, obj
+      # DT.p "Adding"
+      # DT.p dest
+      # DT.p dest.class
       if Array === dest
         dest.insert check_index(dest, key), obj
+      elsif  ActiveRecord::Associations::CollectionProxy === dest
+        dest.create(id: obj)
       else
         dest[key] = obj
       end

@@ -1,4 +1,6 @@
-require 'ruby/json_patch/pointer'
-require 'ruby/json_patch/version'
-require 'ruby/json_patch/patch'
-require 'ruby/json_patch/railtie' if defined?(Rails)
+require 'ruby_json_patch/pointer'
+require 'ruby_json_patch/pather'
+require 'ruby_json_patch/hobo_pather'
+require 'ruby_json_patch/version'
+require 'ruby_json_patch/patch'
+require 'ruby_json_patch/railtie' if defined?(Rails)
