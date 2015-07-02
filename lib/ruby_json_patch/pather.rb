@@ -4,7 +4,7 @@ module RubyJsonPatch
     ESC = {'^/' => '/', '^^' => '^', '~0' => '~', '~1' => '/'} # :nodoc:
 
     def eval list, object
-      DT.p "Pather eval"
+      # DT.p "Pather eval"
       list.inject(object) { |o, part|
         return nil unless o
 

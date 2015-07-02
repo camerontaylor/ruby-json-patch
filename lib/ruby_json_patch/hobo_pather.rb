@@ -13,9 +13,9 @@ module RubyJsonPatch
 
     def eval list, object
       result = list.inject(object) { |o, part|
-        DT.p "Part: #{part}"
-        DT.p "o: #{o}"
-        DT.p "o.class: #{o.class.name}"
+        # DT.p "Part: #{part}"
+        # DT.p "o: #{o}"
+        # DT.p "o.class: #{o.class.name}"
         return nil unless o
         result = nil
         # binding.pry
@@ -27,7 +27,7 @@ module RubyJsonPatch
         elsif ActiveRecord::Associations::CollectionProxy === o
           raise Patch::IndexError unless part =~ /\A\d+\Z/
           result = o.find(part.to_i)
-        elsif o < ActiveRecord::Base
+        elsif o.kind_of?(Class) && o < ActiveRecord::Base
           raise Patch::IndexError unless part =~ /\A\d+\Z/
           result = o.find(part.to_i)
         elsif o.respond_to?(part)
@@ -43,7 +43,7 @@ module RubyJsonPatch
       }
       if ActiveRecord::Associations::CollectionProxy === result
         raise "Update permission denied" unless result.with_acting_user(@acting_user) {
-          result.build.update_permitted?
+          result.model.new.update_permitted?
         }
       end
       # if result < ActiveRecord::Base
@@ -56,7 +56,7 @@ module RubyJsonPatch
         @records_modified.push(result)
         raise "Update permission denied" unless result.with_acting_user(@acting_user) {result.update_permitted?}
       end
-      DT.p result
+      # DT.p result
       result
     end
 

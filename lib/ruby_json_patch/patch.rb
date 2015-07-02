@@ -114,6 +114,8 @@ module RubyJsonPatch
       if Array === obj
         raise Patch::IndexError unless key =~ /\A\d+\Z/
         obj[key.to_i] = ins.fetch VALUE
+      elsif obj.kind_of? ActiveRecord::Base
+        obj.update_attributes({key => ins.fetch(VALUE)})
       else
         obj[key] = ins.fetch VALUE
       end
@@ -143,9 +145,18 @@ module RubyJsonPatch
       # DT.p dest.class
       if Array === dest
         dest.insert check_index(dest, key), obj
+      elsif dest.kind_of? ActiveRecord::Base
+        # DT.p "Modifying ActiveRecord object"
+        dest.update_attributes({key => obj})
       elsif  ActiveRecord::Associations::CollectionProxy === dest
-        dest.create(id: obj)
+        newr = dest.build
+        valid, invalid =  obj.partition {|k, v| newr.respond_to?(k + '=')}.map(&:to_h)
+        DT.p valid
+        DT.p invalid
+        newr.update_attributes(valid) # Do the ones that work
+        newr.update_attributes(invalid) # Then fail
       else
+        # DT.p "Modifying basic object"
         dest[key] = obj
       end
     end
